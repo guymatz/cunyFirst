@@ -111,7 +111,7 @@ content = br.response().get_data()
 writeout("done", br)
 logout(br)
 
-if content.find('The search returns no results that match the criteria specified'):
+if content.find('The search returns no results that match the criteria specified') >= 0:
   print("Boo!")
 else:
   print("Yay!")
