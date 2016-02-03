@@ -6,6 +6,7 @@ import Cookie
 import cookielib
 import argparse
 #from BeautifulSoup import BeautifulSoup
+from datetime import datetime
 
 url='https://hrsa.cunyfirst.cuny.edu/oam/Portal_Login1.html'
 
@@ -23,6 +24,10 @@ parser.add_argument('--klass', metavar='Class#', type=str, required=True,
 parser.add_argument('--debug', action='store_true',
                    help='Print debug output and write responses to file')
 args = parser.parse_args()
+
+if args.college.endswith('01'):
+    print("Just the name of the college, not the 01! E.g. HTR")
+    sys.exit(1)
 
 def writeout(ofile, browser):
   if args.debug:
@@ -111,6 +116,7 @@ content = br.response().get_data()
 writeout("done", br)
 logout(br)
 
+print datetime.now().strftime('%Y%m%d %H:%M ')
 if content.find('The search returns no results that match the criteria specified') >= 0:
   print("Boo!")
 else:
