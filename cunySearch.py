@@ -116,7 +116,7 @@ content = br.response().get_data()
 writeout("done", br)
 logout(br)
 
-print datetime.now().strftime('%Y%m%d %H:%M ')
+print(datetime.now().strftime('%Y%m%d %H:%M ')),
 if content.find('The search returns no results that match the criteria specified') >= 0:
   print("Boo!")
 else:
