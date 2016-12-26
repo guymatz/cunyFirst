@@ -1,11 +1,12 @@
 import sys
+import os
 from mechanize import Browser, Request
 import urllib
 import cookielib
 import argparse
 from BeautifulSoup import BeautifulSoup
 import xml.etree.ElementTree
-from datetime import datetime
+from twilio.rest import TwilioRestClient
 
 url = 'https://hrsa.cunyfirst.cuny.edu/oam/Portal_Login1.html'
 jar = cookielib.LWPCookieJar()
@@ -13,8 +14,8 @@ br = Browser()
 br.set_cookiejar(jar)
 br.set_handle_robots(False)
 br.open(url)
-username = 'Guy.Matz77'
-password = CHANGEME
+username = os.environ['CUNYID']
+password = os.environ['CUNYPASS']
 br.select_form(nr=0)
 br["login"] = username
 br["password"] = password
@@ -72,11 +73,11 @@ req = Request(change_term_url, data=encData, headers={"Content-type": "applicati
 br.open(req)
 
 new_text = xml.etree.ElementTree.fromstring(br.response().get_data())[6].text
-
+changed = False
 try:
     old_html = xml.etree.ElementTree.parse('now2.html').getroot()[6].text
     if old_html != new_html:
-        print("Something Changed!")
+        changed = True
         w('now3', br)
     else:
         w('now2', br)
@@ -85,4 +86,10 @@ except Exception as e:
 
 br.open('https://home.cunyfirst.cuny.edu/psp/cnyepprd/EMPLOYEE/EMPL/?cmd=logout')
 
-
+if changed:
+    accountSID = os.environ['TWILIO_SID']
+    authToken = os.environ['TWILIO_TOKEN']
+    from_number = os.environ['TWILIO_FROM_NUM']
+    to_number = os.environ['TWILIO_TO_NUM']
+    twilio = TwilioRestClient(accountSID, authToken)
+    message = twilio.messages.create(body="Grades!", from_=from_number, to=to_number)
