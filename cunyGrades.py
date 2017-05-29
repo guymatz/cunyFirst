@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import sys
 import os
 from mechanize import Browser, Request
@@ -17,7 +18,7 @@ br.open(url)
 username = os.environ['CUNYID']
 password = os.environ['CUNYPASS']
 br.select_form(nr=0)
-br["login"] = username
+br["username"] = username
 br["password"] = password
 br.submit()
 
@@ -72,17 +73,29 @@ req = Request(change_term_url, data=encData, headers={"Content-type": "applicati
 #br.set_debug_responses(sys.stdout)
 br.open(req)
 
-new_text = xml.etree.ElementTree.fromstring(br.response().get_data())[6].text
+#d = br.response().get_data()
+x = xml.etree.ElementTree.fromstring(br.response().get_data())[6]
+soup = BeautifulSoup(x.text)
+divs = soup.findAll('div')
+d21 = divs[21]
+#print(d21.text)
+c = d21.contents[0]
+children = c.findChildren()
+grade_line = children[64]
+new_grade = grade_line.text
+#print("grade = %s" % new_grade)
+
 changed = False
+
 try:
-    old_html = xml.etree.ElementTree.parse('now2.html').getroot()[6].text
-    if old_html != new_html:
-        changed = True
-        w('now3', br)
-    else:
-        w('now2', br)
+    with open('grades.flag') as file:
+        old_grade = file.read()
+        if new_grade != old_grade:
+            changed = True
 except Exception as e:
-    w('now2', br)
+    with open('grades.flag', 'w') as file:
+        file.write(new_grade)
+    
 
 br.open('https://home.cunyfirst.cuny.edu/psp/cnyepprd/EMPLOYEE/EMPL/?cmd=logout')
 
