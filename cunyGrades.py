@@ -1,108 +1,71 @@
 #!/usr/bin/env python
 import sys
 import os
-from mechanize import Browser, Request
-import urllib
-import cookielib
-import argparse
-from BeautifulSoup import BeautifulSoup
-import xml.etree.ElementTree
-from twilio.rest import TwilioRestClient
+import time
+from twilio.rest import Client
 
-url = 'https://hrsa.cunyfirst.cuny.edu/oam/Portal_Login1.html'
-jar = cookielib.LWPCookieJar()
-br = Browser()
-br.set_cookiejar(jar)
-br.set_handle_robots(False)
-br.open(url)
-username = os.environ['CUNYID']
-password = os.environ['CUNYPASS']
-br.select_form(nr=0)
-br["username"] = username
-br["password"] = password
-br.submit()
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.options import Options
 
-def w(ofile, browser):
-    ofile = "%s.html" % ofile
-    with open(ofile, 'w') as f:
-        f.write(browser.response().get_data())
+#options = Options
+#options.headless = True
+#driver = webdriver.Firefox(options=options)
+driver = webdriver.Firefox()
+login_url = 'https://hrsa.cunyfirst.cuny.edu/oam/Portal_Login1.html'
+driver.get(login_url)
 
+driver.find_element_by_id("CUNYfirstUsernameH").clear()
+driver.find_element_by_id("CUNYfirstUsernameH").send_keys('Guy.Matz77@login.cuny.edu')
+driver.find_element_by_id("CUNYfirstPassword").send_keys('6VnNh0pwOh36')
+driver.find_element_by_id("submit").click()
 
-# br.set_debug_http(sys.stdout)
-# br.set_debug_redirects(sys.stdout)
-# br.set_debug_responses(sys.stdout)
+grades_url = "https://hrsa.cunyfirst.cuny.edu/psp/cnyhcprd/EMPLOYEE/HRMS/c/SA_LEARNER_SERVICES.SSR_SSENRL_GRADE.GBL"
 
-#br.open("https://hrsa.cunyfirst.cuny.edu/psc/cnyhcprd/EMPLOYEE/HRMS/c/SA_LEARNER_SERVICES.SSR_SSENRL_GRADE.GBL?Page=SSR_SSENRL_GRADE&Action=A&TargetFrameName=None")
-br.open("https://hrsa.cunyfirst.cuny.edu/psc/cnyhcprd/EMPLOYEE/HRMS/c/SA_LEARNER_SERVICES.SSR_SSENRL_GRADE.GBL")
-w('now', br)
+driver.get(grades_url)
+driver.switch_to.frame('ptifrmtgtframe')
+driver.find_element_by_id('DERIVED_SSS_SCT_SSS_TERM_LINK').click()
 
-br.select_form(nr=0)
-f = br.form
-change_term_url = f.action
-data = {}
-for k,v in f.click_pairs():
-    data[k] = v
+time.sleep(2)
 
-data['ICAction'] = 'DERIVED_SSS_SCT_SSS_TERM_LINK'
-# Do I need this section?
-encData = urllib.urlencode(data)
-req = Request(change_term_url, data=encData, headers={"Content-type": "application/x-www-form-urlencoded"})
-br.open(req)
-w('now1', br)
+# Select semester
+driver.find_element_by_xpath('//*[@id="SSR_DUMMY_RECV1$sels$1$$0"]').click()
+# click continue
+driver.find_element_by_xpath('//*[@id="DERIVED_SSS_SCT_SSR_PB_GO"]').click()
 
-br.select_form(nr=0)
-f = br.form
-change_term_url = f.action
-data = {}
-for k,v in f.click_pairs():
-    #print("Adding %s : %s" % (k,v))
-    data[k] = v
+grades = ''
+file_grades = ''
+with open('/tmp/grades.txt') as file:
+    file_grades = file.read()
 
-data['ICAction'] = 'DERIVED_SSS_SCT_SSR_PB_GO'
-data['ICAJAX'] = '1'
-data['ICNAVTYPEDROPDOWN'] = '0'
-data['ResponsetoDiffFrame'] = '-1'
-data['SSR_DUMMY_RECV1$sels$1$$0'] = '1'
-data['ICBcDomData'] = 'undefined'
-data['SSR_DUMMY_RECV1$sels$0'] = '1'
-##@#
-encData = urllib.urlencode(data)
-req = Request(change_term_url, data=encData, headers={"Content-type": "application/x-www-form-urlencoded"})
-# br.set_debug_http(sys.stdout)
-#br.set_debug_redirects(sys.stdout)
-#br.set_debug_responses(sys.stdout)
-br.open(req)
+time.sleep(2)
+for i in range(1,3):
+    try:
+        row = driver.find_element_by_id('trTERM_CLASSES$0_row%s' % i)
+        cols = row.text.split('\n')
+        grades = ",".join(cols)
+    except Exception as nse:
+        break
 
-#d = br.response().get_data()
-x = xml.etree.ElementTree.fromstring(br.response().get_data())[6]
-soup = BeautifulSoup(x.text)
-divs = soup.findAll('div')
-d21 = divs[21]
-#print(d21.text)
-c = d21.contents[0]
-children = c.findChildren()
-grade_line = children[64]
-new_grade = grade_line.text
-#print("grade = %s" % new_grade)
-
-changed = False
-
-try:
-    with open('grades.flag') as file:
-        old_grade = file.read()
-        if new_grade != old_grade:
-            changed = True
-except Exception as e:
-    with open('grades.flag', 'w') as file:
-        file.write(new_grade)
-    
-
-br.open('https://home.cunyfirst.cuny.edu/psp/cnyepprd/EMPLOYEE/EMPL/?cmd=logout')
-
-if changed:
+if (file_grades != grades):
+    with open('/tmp/grades.txt', 'w') as file:
+        file.write(grades)
     accountSID = os.environ['TWILIO_SID']
     authToken = os.environ['TWILIO_TOKEN']
     from_number = os.environ['TWILIO_FROM_NUM']
     to_number = os.environ['TWILIO_TO_NUM']
-    twilio = TwilioRestClient(accountSID, authToken)
-    message = twilio.messages.create(body="Grades!", from_=from_number, to=to_number)
+    print("Why Am I texting here")
+    print("grades: %s" % grades)
+    print("file_grades: %s" % file_grades)
+    twilio = Client(accountSID, authToken)
+    message = twilio.messages.create(body="Grades!\n%s" % grades, from_=from_number, to=to_number)
+	
+
+# Go to top frame
+driver.switch_to.default_content()
+# And log out
+driver.find_element_by_xpath('//*[@id="pthdr2logout"]').click()
+
+time.sleep(2)
+
+driver.close()
