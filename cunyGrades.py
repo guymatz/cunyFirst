@@ -5,37 +5,46 @@ import time
 from twilio.rest import Client
 
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.firefox.options import Options
 
-#options = Options
-#options.headless = True
-#driver = webdriver.Firefox(options=options)
-driver = webdriver.Firefox()
+# if we're on a TTY and not in a byobu environment
+if os.isatty(sys.stdin.fileno()) and not os.environ.get('BYOBU_TTY'):
+    driver = webdriver.Firefox()
+else:
+    options = webdriver.FirefoxOptions()
+    options.set_headless()
+    driver = webdriver.Firefox(firefox_options=options)
 login_url = 'https://hrsa.cunyfirst.cuny.edu/oam/Portal_Login1.html'
 driver.get(login_url)
 
+u=os.environ['CUNY_USERNAME']
+p=os.environ['CUNY_PASSWORD']
+
 driver.find_element_by_id("CUNYfirstUsernameH").clear()
-driver.find_element_by_id("CUNYfirstUsernameH").send_keys('Guy.Matz77@login.cuny.edu')
-driver.find_element_by_id("CUNYfirstPassword").send_keys('6VnNh0pwOh36')
+driver.find_element_by_id("CUNYfirstUsernameH").send_keys(u)
+driver.find_element_by_id("CUNYfirstPassword").send_keys(p)
 driver.find_element_by_id("submit").click()
 
-grades_url = "https://hrsa.cunyfirst.cuny.edu/psp/cnyhcprd/EMPLOYEE/HRMS/c/SA_LEARNER_SERVICES.SSR_SSENRL_GRADE.GBL"
+main_page_url = "https://home.cunyfirst.cuny.edu/psp/cnyepprd/EMPLOYEE/EMPL/h/?tab=DEFAULT"
+driver.get(main_page_url)
 
-driver.get(grades_url)
+# Click Student Center
+driver.find_element_by_link_text('Student Center').click()
+
 driver.switch_to.frame('ptifrmtgtframe')
-driver.find_element_by_id('DERIVED_SSS_SCT_SSS_TERM_LINK').click()
+driver.find_element_by_link_text('View Grades').click()
 
-time.sleep(2)
+time.sleep(4)
 
 # Select semester
-driver.find_element_by_xpath('//*[@id="SSR_DUMMY_RECV1$sels$1$$0"]').click()
+driver.find_element_by_link_text('change term').click()
+time.sleep(2)
+driver.find_element_by_id('SSR_DUMMY_RECV1$sels$1$$0').click()
 # click continue
-driver.find_element_by_xpath('//*[@id="DERIVED_SSS_SCT_SSR_PB_GO"]').click()
+driver.find_element_by_link_text('Continue').click()
 
 grades = ''
 file_grades = ''
-with open('/tmp/grades.txt') as file:
+with open('grades.txt') as file:
     file_grades = file.read()
 
 time.sleep(2)
@@ -48,7 +57,7 @@ for i in range(1,3):
         break
 
 if (file_grades != grades):
-    with open('/tmp/grades.txt', 'w') as file:
+    with open('grades.txt', 'w') as file:
         file.write(grades)
     accountSID = os.environ['TWILIO_SID']
     authToken = os.environ['TWILIO_TOKEN']
@@ -61,10 +70,8 @@ if (file_grades != grades):
     message = twilio.messages.create(body="Grades!\n%s" % grades, from_=from_number, to=to_number)
 	
 
-# Go to top frame
-driver.switch_to.default_content()
 # And log out
-driver.find_element_by_xpath('//*[@id="pthdr2logout"]').click()
+driver.get('https://home.cunyfirst.cuny.edu/psp/cnyepprd/EMPLOYEE/EMPL/?cmd=logout')
 
 time.sleep(2)
 
