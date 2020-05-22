@@ -11,8 +11,8 @@ if os.isatty(sys.stdin.fileno()) and not os.environ.get('BYOBU_TTY'):
     driver = webdriver.Firefox()
 else:
     options = webdriver.FirefoxOptions()
-    options.set_headless()
-    driver = webdriver.Firefox(firefox_options=options)
+    options.headless = True
+    driver = webdriver.Firefox(options=options)
 login_url = 'https://hrsa.cunyfirst.cuny.edu/oam/Portal_Login1.html'
 driver.get(login_url)
 
@@ -33,7 +33,7 @@ driver.find_element_by_link_text('Student Center').click()
 driver.switch_to.frame('ptifrmtgtframe')
 driver.find_element_by_link_text('View Grades').click()
 
-time.sleep(4)
+time.sleep(10)
 
 # Select semester
 driver.find_element_by_link_text('change term').click()
@@ -44,8 +44,11 @@ driver.find_element_by_link_text('Continue').click()
 
 grades = ''
 file_grades = ''
-with open('grades.txt') as file:
-    file_grades = file.read()
+try:
+    with open('grades.txt') as file:
+        file_grades = file.read()
+except FileNotFoundError as fne:
+    pass
 
 time.sleep(2)
 for i in range(1,3):

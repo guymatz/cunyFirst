@@ -1,7 +1,3 @@
-requests
-#PyQt4
-BeautifulSoup4
+mechanize
+#BeautifulSoup
 twilio
-ipdb
-ipython
-selenium
