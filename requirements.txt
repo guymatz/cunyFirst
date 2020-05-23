@@ -1,3 +1,2 @@
-mechanize
-#BeautifulSoup
+selenium
 twilio
