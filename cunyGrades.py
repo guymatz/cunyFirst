@@ -16,12 +16,12 @@ else:
 login_url = 'https://hrsa.cunyfirst.cuny.edu/oam/Portal_Login1.html'
 driver.get(login_url)
 
-u=os.environ['CUNY_USERNAME']
-p=os.environ['CUNY_PASSWORD']
+user = os.environ['CUNY_USERNAME']
+passwd = os.environ['CUNY_PASSWORD']
 
 driver.find_element_by_id("CUNYfirstUsernameH").clear()
-driver.find_element_by_id("CUNYfirstUsernameH").send_keys(u)
-driver.find_element_by_id("CUNYfirstPassword").send_keys(p)
+driver.find_element_by_id("CUNYfirstUsernameH").send_keys(user)
+driver.find_element_by_id("CUNYfirstPassword").send_keys(passwd)
 driver.find_element_by_id("submit").click()
 
 main_page_url = "https://home.cunyfirst.cuny.edu/psp/cnyepprd/EMPLOYEE/EMPL/h/?tab=DEFAULT"
@@ -44,11 +44,12 @@ driver.find_element_by_link_text('Continue').click()
 
 grades = ''
 file_grades = ''
+first_run = False
 try:
     with open('grades.txt') as file:
         file_grades = file.read()
 except FileNotFoundError as fne:
-    pass
+    first_run = True
 
 time.sleep(2)
 for i in range(1,3):
@@ -59,9 +60,10 @@ for i in range(1,3):
     except Exception as nse:
         break
 
-if (file_grades != grades):
-    with open('grades.txt', 'w') as file:
-        file.write(grades)
+with open('grades.txt', 'w') as file:
+    file.write(grades)
+
+if (file_grades != grades) and not first_run:
     accountSID = os.environ['TWILIO_SID']
     authToken = os.environ['TWILIO_TOKEN']
     from_number = os.environ['TWILIO_FROM_NUM']
