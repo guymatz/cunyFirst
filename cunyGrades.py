@@ -36,7 +36,7 @@ driver.find_element_by_link_text('View Grades').click()
 time.sleep(10)
 
 # Select semester
-driver.find_element_by_link_text('change term').click()
+#driver.find_element_by_link_text('change term').click()
 time.sleep(2)
 driver.find_element_by_id('SSR_DUMMY_RECV1$sels$1$$0').click()
 # click continue
@@ -71,9 +71,12 @@ if (file_grades != grades) and not first_run:
     print("Why Am I texting here")
     print("grades: %s" % grades)
     print("file_grades: %s" % file_grades)
-    twilio = Client(accountSID, authToken)
-    message = twilio.messages.create(body="Grades!\n%s" % grades, from_=from_number, to=to_number)
-	
+    if os.environ.get('TWILIO_SEND'):
+        twilio = Client(accountSID, authToken)
+        message = twilio.messages.create(body="Grades!\n%s" % grades, from_=from_number, to=to_number)
+    else:
+        print("NOT sending to twilio")
+
 
 # And log out
 driver.get('https://home.cunyfirst.cuny.edu/psp/cnyepprd/EMPLOYEE/EMPL/?cmd=logout')
