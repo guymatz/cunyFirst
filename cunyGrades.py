@@ -3,8 +3,11 @@ import sys
 import os
 import time
 from twilio.rest import Client
-
+import logging
 from selenium import webdriver
+
+if ('-d' in sys.argv):
+    logging.basicConfig(level=logging.DEBUG)
 
 # if we're on a TTY and not in a byobu environment
 if os.isatty(sys.stdin.fileno()) and not os.environ.get('BYOBU_TTY'):
@@ -15,6 +18,7 @@ else:
     driver = webdriver.Firefox(options=options)
 login_url = 'https://hrsa.cunyfirst.cuny.edu/oam/Portal_Login1.html'
 driver.get(login_url)
+logging.debug("Gotlogin page")
 
 user = os.environ['CUNY_USERNAME']
 passwd = os.environ['CUNY_PASSWORD']
@@ -23,15 +27,18 @@ driver.find_element_by_id("CUNYfirstUsernameH").clear()
 driver.find_element_by_id("CUNYfirstUsernameH").send_keys(user)
 driver.find_element_by_id("CUNYfirstPassword").send_keys(passwd)
 driver.find_element_by_id("submit").click()
+logging.debug("Logged in")
 
 main_page_url = "https://home.cunyfirst.cuny.edu/psp/cnyepprd/EMPLOYEE/EMPL/h/?tab=DEFAULT"
 driver.get(main_page_url)
 
 # Click Student Center
 driver.find_element_by_link_text('Student Center').click()
+logging.debug("Clicked Stident Center")
 
 driver.switch_to.frame('ptifrmtgtframe')
 driver.find_element_by_link_text('View Grades').click()
+logging.debug("Clicked 'View Grades'")
 
 time.sleep(10)
 
@@ -59,6 +66,8 @@ for i in range(1,3):
         grades = ",".join(cols)
     except Exception as nse:
         break
+
+logging.debug("Got grades")
 
 with open('grades.txt', 'w') as file:
     file.write(grades)
