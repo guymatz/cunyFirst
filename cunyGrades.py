@@ -43,9 +43,11 @@ logging.debug("Clicked 'View Grades'")
 time.sleep(10)
 
 # Select semester
-#driver.find_element_by_link_text('change term').click()
+logging.debug("Changing Term . . . ")
+driver.find_element_by_link_text('change term').click()
 time.sleep(2)
 driver.find_element_by_id('SSR_DUMMY_RECV1$sels$1$$0').click()
+#driver.find_element_by_id('SSR_DUMMY_RECV1$sels$0$$0').click()
 # click continue
 driver.find_element_by_link_text('Continue').click()
 
