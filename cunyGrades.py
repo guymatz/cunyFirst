@@ -46,9 +46,9 @@ time.sleep(10)
 logging.debug("Changing Term . . . ")
 # They got rid of the cahnge term button
 #driver.find_element_by_link_text('change term').click()
-#time.sleep(2)
+# time.sleep(2)
 driver.find_element_by_id('SSR_DUMMY_RECV1$sels$1$$0').click()
-#driver.find_element_by_id('SSR_DUMMY_RECV1$sels$0$$0').click()
+# driver.find_element_by_id('SSR_DUMMY_RECV1$sels$0$$0').click()
 # click continue
 driver.find_element_by_link_text('Continue').click()
 
@@ -62,7 +62,7 @@ except FileNotFoundError as fne:
     first_run = True
 
 time.sleep(2)
-for i in range(1,3):
+for i in range(1, 3):
     try:
         row = driver.find_element_by_id('trTERM_CLASSES$0_row%s' % i)
         cols = row.text.split('\n')
@@ -85,7 +85,8 @@ if (file_grades != grades) and not first_run:
     print("file_grades: %s" % file_grades)
     if os.environ.get('TWILIO_SEND'):
         twilio = Client(accountSID, authToken)
-        message = twilio.messages.create(body="Grades!\n%s" % grades, from_=from_number, to=to_number)
+        message = twilio.messages.create(
+            body="Grades!\n%s" % grades, from_=from_number, to=to_number)
     else:
         print("NOT sending to twilio")
 
