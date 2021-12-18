@@ -16,7 +16,11 @@ else:
     options = webdriver.FirefoxOptions()
     options.headless = True
     driver = webdriver.Firefox(options=options)
-login_url = 'https://hrsa.cunyfirst.cuny.edu/oam/Portal_Login1.html'
+
+#login_url = 'https://hrsa.cunyfirst.cuny.edu/oam/Portal_Login1.html'
+#login_url = 'https://ssologin.cuny.edu/cuny.html'
+# This seems to be the best URL at the moment
+login_url = 'https://home.cunyfirst.cuny.edu/psp/cnyepprd/EMPLOYEE/EMPL/h/?tab=DEFAULT'
 driver.get(login_url)
 logging.debug("Gotlogin page")
 
