@@ -27,37 +27,41 @@ logging.debug("Gotlogin page")
 user = os.environ['CUNY_USERNAME']
 passwd = os.environ['CUNY_PASSWORD']
 
-driver.find_element_by_id("CUNYfirstUsernameH").clear()
-driver.find_element_by_id("CUNYfirstUsernameH").send_keys(user)
-driver.find_element_by_id("CUNYfirstPassword").send_keys(passwd)
-driver.find_element_by_id("submit").click()
+driver.find_elements("id", "CUNYfirstUsernameH")[0].clear()
+driver.find_elements("id", "CUNYfirstUsernameH")[0].send_keys(user)
+driver.find_elements("id", "CUNYfirstPassword")[0].send_keys(passwd)
+driver.find_elements("id", "submit")[0].click()
 logging.debug("Logged in")
 
-main_page_url = "https://home.cunyfirst.cuny.edu/psp/cnyepprd/EMPLOYEE/EMPL/h/?tab=DEFAULT"
+main_page_url = "https://home.cunyfirst.cuny.edu/psc/cnyihprd/EMPLOYEE/EMPL/c/NUI_FRAMEWORK.PT_LANDINGPAGE.GBL"
 driver.get(main_page_url)
 
 # Click Student Center
-driver.find_element_by_link_text('Student Center').click()
+#driver.find_element_by_link_text('Student Center').click()
+ss_url = "https://home.cunyfirst.cuny.edu/psc/cnyihprd/EMPLOYEE/EMPL/c/NUI_FRAMEWORK.PT_LANDINGPAGE.GBL?LP=CU_CS_SCC_STUDENT_HOMEPAGE_FL"
+driver.get(ss_url)
 logging.debug("Clicked Stident Center")
 
-driver.switch_to.frame('ptifrmtgtframe')
-driver.find_element_by_link_text('View Grades').click()
+records_url = "https://cssa.cunyfirst.cuny.edu/psc/cnycsprd_7/EMPLOYEE/SA/c/SSR_STUDENT_ACAD_REC_FL.SSR_MD_ACAD_REC_FL.GBL?Action=U&MD=Y&GMenu=SSR_STUDENT_ACAD_REC_FL&GComp=SSR_ACADREC_NAV_FL&GPage=SCC_START_PAGE_FL&scname=CS_SSR_ACADEMIC_RECORDS_FL"
+driver.get(records_url)
+
+#driver.switch_to.frame('ptifrmtgtframe')
+time.sleep(10)
+driver.find_elements('link text', 'View Grades')[0].click()
 logging.debug("Clicked 'View Grades'")
 
-time.sleep(10)
+time.sleep(5)
 
 # Select semester
-if driver.find_element_by_link_text('change term') != None:
-    logging.debug("Changing Term . . . ")
-    # They got rid of the change term button
-    driver.find_element_by_link_text('change term').click()
-    time.sleep(2)
-    driver.find_element_by_id('SSR_DUMMY_RECV1$sels$1$$0').click()
-    # driver.find_element_by_id('SSR_DUMMY_RECV1$sels$0$$0').click()
-    # click continue
-    driver.find_element_by_link_text('Continue').click()
+try:
+    term = driver.find_element('id', 'TERM_GRID$0_row_0')
+    term.click()
+except Exception as e:
+    logging.debug("No need to change term?")
 
-grades = ''
+time.sleep(10)
+grades = driver.find_element('css selector', 'tbody.ps_grid-body').text
+
 file_grades = ''
 first_run = False
 try:
@@ -65,15 +69,6 @@ try:
         file_grades = file.read()
 except FileNotFoundError as fne:
     first_run = True
-
-time.sleep(2)
-for i in range(1, 3):
-    try:
-        row = driver.find_element_by_id('trTERM_CLASSES$0_row%s' % i)
-        cols = row.text.split('\n')
-        grades = ",".join(cols)
-    except Exception as nse:
-        break
 
 logging.debug("Got grades")
 
