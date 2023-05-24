@@ -5,16 +5,25 @@ import time
 from twilio.rest import Client
 import logging
 from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
 
 if ('-d' in sys.argv):
     logging.basicConfig(level=logging.DEBUG)
 
+if ('-t' in sys.argv):
+    logging.debug("In test mode on server")
+    logging.basicConfig(level=logging.DEBUG)
+    options = Options()
+    options.add_argument("--headless")
+    driver = webdriver.Firefox(options=options)
 # if we're on a TTY and not in a byobu environment
-if os.isatty(sys.stdin.fileno()) and not os.environ.get('BYOBU_TTY'):
+elif os.isatty(sys.stdin.fileno()) and not os.environ.get('BYOBU_TTY'):
+    logging.debug("In test mode on laptop")
     driver = webdriver.Firefox()
 else:
-    options = webdriver.FirefoxOptions()
-    options.headless = True
+    logging.debug("Running on server")
+    options = Options()
+    options.add_argument("--headless")
     driver = webdriver.Firefox(options=options)
 
 #login_url = 'https://hrsa.cunyfirst.cuny.edu/oam/Portal_Login1.html'
@@ -62,6 +71,8 @@ except Exception as e:
 time.sleep(10)
 grades = driver.find_element('css selector', 'tbody.ps_grid-body').text
 
+logging.debug(f"Got grades:\n{grades}")
+
 file_grades = ''
 first_run = False
 try:
@@ -69,8 +80,6 @@ try:
         file_grades = file.read()
 except FileNotFoundError as fne:
     first_run = True
-
-logging.debug("Got grades")
 
 with open('grades.txt', 'w') as file:
     file.write(grades)
