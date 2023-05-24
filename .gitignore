@@ -1,4 +1,5 @@
 grades.txt
+.env
 # project-specific additions
 *html
 *.swp

@@ -11,8 +11,8 @@ if ('-d' in sys.argv):
     logging.basicConfig(level=logging.DEBUG)
 
 if ('-t' in sys.argv):
-    logging.debug("In test mode on server")
     logging.basicConfig(level=logging.DEBUG)
+    logging.debug("In test mode on server")
     options = Options()
     options.add_argument("--headless")
     driver = webdriver.Firefox(options=options)
@@ -95,7 +95,7 @@ if (file_grades != grades) and not first_run:
     if os.environ.get('TWILIO_SEND'):
         twilio = Client(accountSID, authToken)
         message = twilio.messages.create(
-            body="Grades!\n%s" % grades, from_=from_number, to=to_number)
+            body="Grades! (Cancel twilio #?) \n%s" % grades, from_=from_number, to=to_number)
     else:
         print("NOT sending to twilio")
 
